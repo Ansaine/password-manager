@@ -1,37 +1,23 @@
 import db from "../mysql-db/dbConfig.js"
-import express from 'express'
-import bodyParser from "body-parser";
 import encryption from "../encryption.js";
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 
-const app = express();
-app.use(bodyParser.json());
-// Use body-parser middleware to parse URL-encoded bodies
-app.use(bodyParser.urlencoded({ extended: true }));
+// Environment variables
+import dotenv from 'dotenv';
+dotenv.config()
+
 
 const addData = async (req, res) => {
   let connection;
 
   try {
     // Extract data from the request body
-    const { email, emailPassword, username, website, websitePassword } = req.body;
+    const { email, username, website, websitePassword } = req.body;
 
     // Start a transaction to ensure atomicity
     connection = await db.getConnection();
     await connection.beginTransaction();
-
-    // Check if the email already exists in the `users` table
-    const [existingUser] = await connection.query(
-      'SELECT email FROM users WHERE email = ?',
-      [email]
-    );
-
-    // If the email does not exist, insert data into `users` table
-    if (existingUser.length === 0) {
-      await connection.query(
-        'INSERT INTO users (email, emailPassword) VALUES (?, ?)',
-        [email, emailPassword]
-      );
-    }
 
     // Insert data into `details` table
     await connection.query(
@@ -63,7 +49,6 @@ const addData = async (req, res) => {
     }
   }
 };
-
 
 const fetchAllData = async (req, res) => {
 
@@ -129,9 +114,76 @@ const deletePassword = async (req, res) => {
   }
 };
 
+// registration is simply added email and its hashed password to db
+const register = async (req, res) => {
+  const { email, emailPassword } = req.body;
+  console.log("At /register : ", email, " ", emailPassword);
+
+  try {
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(emailPassword, 10);
+
+    // Insert the user into the database
+    const [results] = await db.query(
+      'INSERT INTO users (email, emailPassword) VALUES (?, ?)',
+      [email, hashedPassword]
+    );
+
+    // Send a success response
+    res.status(201).send('User registered');
+  } catch (err) {
+    console.error('Error registering user:', err);
+    // Send an error response if there's an issue
+    res.status(500).send('Error registering user');
+  }
+};
+
+const login = async (req, res) => {
+  const { email, emailPassword } = req.body;
+  console.log("At login for:", email, " ", emailPassword);
+
+  try {
+    const [results] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (results.length === 0) return res.status(401).send('Invalid email or password');
+
+    const user = results[0];
+    console.log("Email search for login found:", user);
+
+    const validPassword = await bcrypt.compare(emailPassword, user.emailPassword);
+    if (!validPassword) return res.status(401).send('Invalid email or password');
+
+    // Generate JWT token with expiration
+    const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, { expiresIn: '1h' });
+    res.status(200).json({ token });
+
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).send('Error logging in');
+  }
+};
+
+
+const authenticateToken = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return res.sendStatus(401);
+  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+// Protected route example
+const protectionTest = (req, res) => {
+  res.send('This is a protected route');
+};
 
 export default {
     addData,
     fetchAllData,
-    deletePassword
+    deletePassword,
+    register,
+    login,
+    protectionTest,
+    authenticateToken
 }

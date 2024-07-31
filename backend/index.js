@@ -6,8 +6,12 @@ import dotenv from 'dotenv';
 import routes from './routes/routes.js';
 dotenv.config()
 
+// CORS
+import cors from 'cors'
+
 // Express configurations
 const app = express();
+app.use(cors());
 app.use(express.json());  // Middleware to parse JSON bodies - Fixed error unable to destructure req.body
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
@@ -18,6 +22,7 @@ app.listen(PORT, () => {
 );
 
 app.use('/',routes)
+
 
 // check DB connection
 const checkDB = async () => {
