@@ -67,7 +67,7 @@ const PasswordList = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                   />
                   <span
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                    className="absolute right-6 top-1/2 transform -translate-y-1/2 cursor-pointer"
                     onClick={() => togglePasswordVisibility(index)}
                   >
                     <img
