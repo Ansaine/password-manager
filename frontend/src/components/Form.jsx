@@ -3,7 +3,7 @@ import axios from 'axios';
 import showPasswordIcon from './icons/showPasswordIcon.png';
 import hidePasswordIcon from './icons/hidePasswordIcon.png';
 
-const Form = () => {
+const Form = ({toggle}) => {
   const [website, setWebsite] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +18,7 @@ const Form = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    toggle();
     const email = localStorage.getItem('email');
     const token = localStorage.getItem('token'); // Retrieve the token
 

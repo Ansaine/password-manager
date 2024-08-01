@@ -9,17 +9,17 @@ const LoginPage = () => {
   const [emailPassword, setEmailPassword] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const token = localStorage.getItem('token'); // Retrieve the token
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const endpoint = isLogin ? '/login' : '/register';
       const backendUrl = import.meta.env.VITE_BACKEND_API_URL;
-      console.log("Register Clicked and backend url is  ",backendUrl);
-      const response = await axios.post(`${backendUrl}`+endpoint, { email, emailPassword });
+      const response = await axios.post(`${backendUrl}` + endpoint, { email, emailPassword }, { headers: { Authorization: `Bearer ${token}` } });
       if (isLogin) {
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('email',email)           // email should be present in local storage
+        localStorage.setItem('email', email)           // email should be present in local storage
         setMessage('Login successful');
         navigate('/HomePage');
       } else {

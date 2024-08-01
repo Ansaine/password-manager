@@ -4,7 +4,7 @@ import axios from 'axios';
 import showPasswordIcon from './icons/showPasswordIcon.png';
 import hidePasswordIcon from './icons/hidePasswordIcon.png';
 
-const PasswordList = () => {
+const PasswordList = (toggleVariable) => {
   const [passwords, setPasswords] = useState([]);
   const [message, setMessage] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState({});
@@ -25,20 +25,43 @@ const PasswordList = () => {
           }
         });
 
-        setPasswords(response.data);
+        if (Array.isArray(response.data)) {
+          setPasswords(response.data);
+        } else {
+          setPasswords([]);
+        }
       } catch (error) {
         setMessage('Error fetching data');
       }
     };
 
     fetchPasswords();
-  }, []); 
+    console.log("PasswordList re-rendered");
+  }, [toggleVariable]);
 
   const togglePasswordVisibility = (index) => {
     setVisiblePasswords(prev => ({
       ...prev,
       [index]: !prev[index]
     }));
+  };
+
+  const deletePassword = async (email, website) => {
+    try {
+      const response = await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/deletePassword`, {
+        data: { email, website },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.status === 200) {
+        setPasswords(passwords.filter(item => item.website !== website));
+      } else {
+        setMessage('Error deleting password');
+      }
+    } catch (error) {
+      setMessage('Error deleting password');
+    }
   };
 
   return (
@@ -51,6 +74,7 @@ const PasswordList = () => {
             <th className="border px-4 py-2">Website</th>
             <th className="border px-4 py-2">Username</th>
             <th className="border px-4 py-2">Password</th>
+            <th className="border px-4 py-2">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -77,11 +101,19 @@ const PasswordList = () => {
                     />
                   </span>
                 </td>
+                <td className="border px-4 py-2 text-center">
+                  <button
+                    className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:bg-red-600"
+                    onClick={() => deletePassword(localStorage.getItem('email'), item.website)}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="3" className="border px-4 py-2 text-center">No passwords found</td>
+              <td colSpan="4" className="border px-4 py-2 text-center">No passwords found</td>
             </tr>
           )}
         </tbody>
