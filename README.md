@@ -9,19 +9,12 @@ Schema for the sql server -
 
 * MYSQL_ROOT_PASSWORD:root  and MYSQL_DATABASE:passwordManager // this is needed as env variable in docker-compose file to
   set default values when image is being initialised.
+* For using vite, i need to keep flag -
+  "dev":"vite --host",
+  only then it will be accessible from outside the container
+* connected with docker mysql from local using -> sudo mysql -h 127.0.0.1 -P 3306 -u root -p
+  If i used -h as localhost it uses socket by default which gives error, need to use 127.0.0.1 to use tcp
 
-
-DB_HOST:mysql
-
-DB_USER:root
-
-DB_PASSWORD:root
-
-MYSQL_ROOT_PASSWORD:root
-
-MYSQL_DATABASE:passwordManager
-
-DB_NAME:passwordManager
 
 # Key technologies
 

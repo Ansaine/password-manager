@@ -10,8 +10,10 @@ routes.get('/fetchAllData',controllers.authenticateToken, controllers.fetchAllDa
 routes.delete('/deletePassword',controllers.authenticateToken,controllers.deletePassword);
 
 // Authentication - Login and registration
-routes.post('/register',controllers.authenticateToken, controllers.register );
-routes.post('/login', controllers.authenticateToken,controllers.login );
+// registration doesnt need authentication
+// Also , after login only, we get token
+routes.post('/register',controllers.register );
+routes.post('/login', controllers.login );
 routes.get('/protectionTest', controllers.authenticateToken, controllers.protectionTest );
 
 

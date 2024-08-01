@@ -165,9 +165,13 @@ const login = async (req, res) => {
 
 const authenticateToken = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
+  console.log("Token found while auth : ", token);
+  console.log("Secret key found while auth : ", process.env.SECRET_KEY);
+
   if (!token) return res.status(401).json({message: "Token not provided"})
+
   jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({message : "unable to verify token"});
+    if (err) return res.status(403).json({message : `unable to verify token. Error : ${err}`});
     req.user = user;
     next();
   });
